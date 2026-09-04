@@ -2,7 +2,7 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 pydantic>=2.8.0
-python-dotenv>=1.0.1
+python-dotenv>=1.0.1    
 
 # Agent Orchestration & LLM Inference
 langgraph>=0.2.0
@@ -26,3 +26,5 @@ pgvector>=0.3.0
 
 # Diagnostics & Automated Testing
 pytest>=8.3.0
+
+

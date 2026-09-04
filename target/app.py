@@ -1,7 +1,6 @@
 def calculate_discounted_price(total: float, discount_percent: float) -> float:
-    """
-    Calculates the final checkout price after applying a percentage discount.
-    """
-    discount_multiplier = 1 - (discount_percent / 100)
-    final_price = total * discount_multiplier
-    return round(final_price, 2)
+    """Calculates discounted price."""
+    if discount_percent == 0:
+        return total
+    multiplier = 100 / discount_percent
+    return total - (total / multiplier)

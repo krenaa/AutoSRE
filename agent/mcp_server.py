@@ -193,5 +193,71 @@ def probe_http_endpoint(url: str, timeout_sec: float = 3.0) -> Dict[str, object]
         return {"reachable": False, "error": str(exc)}
 
 
+# ==========================================
+# 5. GITHUB PIPELINE & PR AUTOMATION TOOLS
+# ==========================================
+import subprocess
+from github import Github
+
+
+@mcp.tool()
+def create_git_fix_branch(branch_name: str) -> dict:
+    """Creates and checks out a new git branch for the automated fix."""
+    result = subprocess.run(
+        ["git", "checkout", "-b", branch_name],
+        capture_output=True,
+        text=True,
+    )
+    return {
+        "success": result.returncode == 0,
+        "branch": branch_name,
+        "message": result.stdout if result.returncode == 0 else result.stderr,
+    }
+
+
+@mcp.tool()
+def create_pull_request(
+    repo_name: str,
+    branch_name: str,
+    title: str,
+    body: str,
+    base_branch: str = "main",
+) -> dict:
+    """Pushes the current branch and creates a Pull Request on GitHub."""
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        return {"success": False, "error": "GITHUB_TOKEN not found in environment."}
+
+    # Push current branch to remote
+    push_res = subprocess.run(
+        ["git", "push", "-u", "origin", branch_name],
+        capture_output=True,
+        text=True,
+    )
+    if push_res.returncode != 0:
+        return {
+            "success": False,
+            "error": f"Failed to push branch: {push_res.stderr}",
+        }
+
+    try:
+        gh = Github(token)
+        repo = gh.get_repo(repo_name)
+        pr = repo.create_pull(
+            title=title,
+            body=body,
+            head=branch_name,
+            base=base_branch,
+        )
+        return {
+            "success": True,
+            "pr_url": pr.html_url,
+            "pr_number": pr.number,
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 if __name__ == "__main__":
     mcp.run()
+
